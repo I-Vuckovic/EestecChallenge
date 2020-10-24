@@ -61,24 +61,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-//      setContentView(R.layout.tts_main)
-
-//      ed1 = findViewById<View>(R.id.editText) as EditText
-//      b1 = findViewById<View>(R.id.button) as Button
-
-        /*t1 = TextToSpeech(applicationContext,
-            OnInitListener { status ->
-                if (status != TextToSpeech.ERROR) {
-                    t1!!.language = Locale.UK
-                }
-        })
-
-        b1?.setOnClickListener()
-        {
-            val toSpeak = ed1!!.text.toString()
-            Toast.makeText(applicationContext, toSpeak, Toast.LENGTH_SHORT).show()
-            t1!!.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null)
-        */
 
         Fritz.configure(this, "84e387eb963943cb9a6163e5a4642d9f");
 
@@ -92,6 +74,13 @@ class MainActivity : AppCompatActivity() {
         camera_capture_button.setOnClickListener { takePhoto() }
 
         outputDirectory = getOutputDirectory()
+
+        //TTS
+        t1 = TextToSpeech(applicationContext, OnInitListener { status ->
+                    if (status != TextToSpeech.ERROR) {
+                        t1!!.language = Locale.UK
+                    }
+                })
 
     }
 
@@ -184,6 +173,13 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, msg)
                 }
             })
+
+        readText("I can read")
+    }
+
+    private fun readText(msg:String){
+        Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+        t1!!.speak(msg, TextToSpeech.QUEUE_FLUSH, null)
     }
 
     private fun getOutputDirectory(): File {
