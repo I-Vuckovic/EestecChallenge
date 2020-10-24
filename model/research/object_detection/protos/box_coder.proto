@@ -2,10 +2,10 @@ syntax = "proto2";
 
 package object_detection.protos;
 
-import "object_detection/protos/faster_rcnn_box_coder.proto";
-import "object_detection/protos/keypoint_box_coder.proto";
-import "object_detection/protos/mean_stddev_box_coder.proto";
-import "object_detection/protos/square_box_coder.proto";
+import "faster_rcnn_box_coder.proto";
+import "keypoint_box_coder.proto";
+import "mean_stddev_box_coder.proto";
+import "square_box_coder.proto";
 
 // Configuration proto for the box coder to be used in the object detection
 // pipeline. See core/box_coder.py for details.

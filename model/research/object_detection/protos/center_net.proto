@@ -2,8 +2,8 @@ syntax = "proto2";
 
 package object_detection.protos;
 
-import "object_detection/protos/image_resizer.proto";
-import "object_detection/protos/losses.proto";
+import "image_resizer.proto";
+import "losses.proto";
 
 // Configuration for the CenterNet meta architecture from the "Objects as
 // Points" paper [1]
