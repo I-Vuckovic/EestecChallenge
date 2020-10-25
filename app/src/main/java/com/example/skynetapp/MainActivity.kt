@@ -1,9 +1,6 @@
 package com.example.skynetapp
 
 import android.speech.tts.TextToSpeech
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.util.*
 import android.Manifest
@@ -17,6 +14,7 @@ import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.concurrent.Executors
 import ai.fritz.core.Fritz
+import android.annotation.SuppressLint
 import android.net.Uri
 import android.webkit.MimeTypeMap
 import androidx.camera.core.*
@@ -41,6 +39,9 @@ import java.text.SimpleDateFormat
 import android.app.Activity
 import android.app.ProgressDialog
 import android.icu.util.TimeUnit
+import android.view.View
+import android.widget.*
+import com.bumptech.glide.Glide
 
 
 // class MainActivity : AppCompatActivity() {
@@ -53,10 +54,11 @@ import android.icu.util.TimeUnit
 //         b1 = findViewById<View>(R.id.button) as Button
 
 
+@SuppressLint("WrongViewCast")
 class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
     var t1: TextToSpeech? = null
-    var ed1: EditText? = null
-    var b1: Button? = null
+   // setContentView(R.id)
+   // var pgsBar = findViewById<ProgressBar>(R.id.pBar)
 
     var dialog: ProgressDialog? = null
     var serverURL: String = "http://89.39.144.160:5000/submit"
@@ -73,6 +75,10 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        var pgsBar = findViewById<View>(R.id.pBar) as? ProgressBar
+        //pgsBar!!.onVisibilityAggregated(true)
+
+        showGif()
 
         Fritz.configure(this, "84e387eb963943cb9a6163e5a4642d9f")
 
@@ -162,8 +168,9 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
             baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun takePhoto() {
+    private fun takePhoto() { //pgsBar:ProgressBar
         readText("Please wait while the object gets recognized")
+        //pgsBar!!.onVisibilityAggregated(true)
         // Get a stable reference of the modifiable image capture use case
         val imageCapture = imageCapture ?: return
 
@@ -194,6 +201,11 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
             })
 
         //readText("I can read")
+    }
+
+    fun showGif() {
+        val imageView: ImageView = findViewById(R.id.imageView)
+        Glide.with(this).load("https://media4.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif").into(imageView)
     }
 
     public fun readText(msg:String){
