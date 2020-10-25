@@ -18,14 +18,15 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.util.concurrent.Executors
 import ai.fritz.core.Fritz
 import android.net.Uri
+import android.webkit.MimeTypeMap
 import androidx.camera.core.*
 //import com.example.skynetapp.api.APIInterface
 //import com.example.skynetapp.api.UploadRequestBody
 //import com.example.skynetapp.api.uploadResponse
-import com.mvp.handyopinion.UploadUtility
-import okhttp3.MediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
+//import com.mvp.handyopinion.UploadUtility
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.internal.wait
 //import retrofit2.Call
 //import retrofit2.Call
@@ -37,6 +38,9 @@ import java.io.File
 import java.text.SimpleDateFormat
 //import retrofit2.Callback
 //import retrofit2.Response
+import android.app.Activity
+import android.app.ProgressDialog
+import android.icu.util.TimeUnit
 
 
 // class MainActivity : AppCompatActivity() {
@@ -54,6 +58,14 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
     var ed1: EditText? = null
     var b1: Button? = null
 
+    var dialog: ProgressDialog? = null
+    var serverURL: String = "http://89.39.144.160:5000/submit"
+    var serverUploadDirectoryPath: String = "http://89.39.144.160:5000/submit"
+    val client = OkHttpClient.Builder().connectTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+        .build()
+
     private var imageCapture: ImageCapture? = null
     private val cameraExecutor = Executors.newSingleThreadExecutor()
     private lateinit var outputDirectory: File
@@ -61,26 +73,8 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-//      setContentView(R.layout.tts_main)
 
-//      ed1 = findViewById<View>(R.id.editText) as EditText
-//      b1 = findViewById<View>(R.id.button) as Button
-
-        /*t1 = TextToSpeech(applicationContext,
-            OnInitListener { status ->
-                if (status != TextToSpeech.ERROR) {
-                    t1!!.language = Locale.UK
-                }
-        })
-
-        b1?.setOnClickListener()
-        {
-            val toSpeak = ed1!!.text.toString()
-            Toast.makeText(applicationContext, toSpeak, Toast.LENGTH_SHORT).show()
-            t1!!.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null)
-        */
-
-        Fritz.configure(this, "84e387eb963943cb9a6163e5a4642d9f");
+        Fritz.configure(this, "84e387eb963943cb9a6163e5a4642d9f")
 
         if (allPermissionsGranted()) {
             startCamera()
@@ -93,7 +87,19 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
 
         outputDirectory = getOutputDirectory()
 
+        //TTS
+        t1 = TextToSpeech(applicationContext, TextToSpeech.OnInitListener { status ->
+                    if (status != TextToSpeech.ERROR) {
+                        t1!!.language = Locale.UK
+                    }
+                })
+
     }
+
+//    override fun onStart() {
+//        super.onStart()
+//        readText("Press anywhere to recognize an object")
+//    }
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
@@ -157,6 +163,7 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
     }
 
     private fun takePhoto() {
+        readText("Please wait while the object gets recognized")
         // Get a stable reference of the modifiable image capture use case
         val imageCapture = imageCapture ?: return
 
@@ -182,10 +189,16 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
                     val msg = "Photo capture succeeded: $savedUri"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
-                    UploadUtility().uploadFile(photoFile, photoFile.name)
+                    uploadFile(photoFile, photoFile.name)
                 }
             })
-        //Thread.sleep(1000)
+
+        //readText("I can read")
+    }
+
+    public fun readText(msg:String){
+        //Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+        t1!!.speak(msg, TextToSpeech.QUEUE_FLUSH, null)
     }
 
     private fun getOutputDirectory(): File {
@@ -285,7 +298,51 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
 
-//    override fun onProgressUpdate(percentage: Int) {
-//        TODO("Not yet implemented")
-//    }
+
+
+    fun uploadFile(sourceFile: File, uploadedFileName: String? = null) {
+        Thread {
+            val mimeType = getMimeType(sourceFile);
+            if (mimeType == null) {
+                Log.e("file error", "Not able to get mime type")
+                return@Thread
+            }
+            val fileName: String = if (uploadedFileName == null)  sourceFile.name else uploadedFileName
+            try {
+                val requestBody: RequestBody =
+                    MultipartBody.Builder().setType(MultipartBody.FORM)
+                        .addFormDataPart("file", fileName,sourceFile.asRequestBody(mimeType.toMediaTypeOrNull()))
+                        .build()
+
+                val request: Request = Request.Builder().url(serverURL).post(requestBody).build()
+
+                val response: Response = client.newCall(request).execute()
+
+                response.body?.string()?.let { readText(it+". Press anywhere to recognize another object") }
+
+                if (response.isSuccessful) {
+                    Log.d("File upload","success, path: $serverUploadDirectoryPath$fileName")
+                    //readText("Press anywhere to recognize an object")
+                } else {
+                    Log.e("File upload", "failed")
+                }
+                response.close()
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                Log.e("File upload", "failed")
+            }
+        }.start()
+
+
+    }
+
+    // url = file path or whatever suitable URL you want.
+    fun getMimeType(file: File): String? {
+        var type: String? = null
+        val extension = MimeTypeMap.getFileExtensionFromUrl(file.path)
+        if (extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+        }
+        return type
+    }
 }
