@@ -1,42 +1,42 @@
 package com.example.skynetapp
 
-import android.content.DialogInterface
 import android.speech.tts.TextToSpeech
-import android.speech.tts.TextToSpeech.OnInitListener
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.util.*
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 import android.view.Menu
-import android.view.MenuItem
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.*
 import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.*
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import ai.fritz.core.Fritz
-import ai.fritz.vision.FritzVision
-import ai.fritz.vision.FritzVisionImage
-import ai.fritz.vision.ImageRotation
-import ai.fritz.vision.imagelabeling.ImageLabelManagedModelFast
-import ai.fritz.vision.PredictorStatusListener
-import ai.fritz.vision.imagelabeling.FritzVisionLabelPredictor
 import android.net.Uri
-import android.widget.TextView
 import androidx.camera.core.*
+//import com.example.skynetapp.api.APIInterface
+//import com.example.skynetapp.api.UploadRequestBody
+//import com.example.skynetapp.api.uploadResponse
+import com.mvp.handyopinion.UploadUtility
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.internal.wait
+//import retrofit2.Call
+//import retrofit2.Call
+//import retrofit2.Callback
+//import retrofit2.Response
+//import retrofit2.Retrofit
+//import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.text.SimpleDateFormat
+//import retrofit2.Callback
+//import retrofit2.Response
 
 
 // class MainActivity : AppCompatActivity() {
@@ -49,7 +49,7 @@ import java.text.SimpleDateFormat
 //         b1 = findViewById<View>(R.id.button) as Button
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
     var t1: TextToSpeech? = null
     var ed1: EditText? = null
     var b1: Button? = null
@@ -182,8 +182,10 @@ class MainActivity : AppCompatActivity() {
                     val msg = "Photo capture succeeded: $savedUri"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
+                    UploadUtility().uploadFile(photoFile, photoFile.name)
                 }
             })
+        //Thread.sleep(1000)
     }
 
     private fun getOutputDirectory(): File {
@@ -207,6 +209,28 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+//    private fun uploadImage(file: File) {
+//        val body = UploadRequestBody(file, "image", this)
+//        APIInterface().uploadImage(
+//            MultipartBody.Part.createFormData(
+//                "image",
+//                file.name,
+//                body
+//            )
+//        ).enqueue(object : Callback<uploadResponse> {
+//            override fun onFailure(call: Call<uploadResponse>, t: Throwable) {
+//            }
+//            override fun onResponse(
+//                call: Call<uploadResponse>,
+//                response: Response<uploadResponse>
+//            ) {
+//                response.body()?.let {
+//                    Log.i("RISPONSE", it.toString())
+//                }
+//            }
+//        })
+//
+//    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -260,4 +284,8 @@ class MainActivity : AppCompatActivity() {
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
+
+//    override fun onProgressUpdate(percentage: Int) {
+//        TODO("Not yet implemented")
+//    }
 }
