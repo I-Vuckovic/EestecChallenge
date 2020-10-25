@@ -6,18 +6,15 @@ import tarfile
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 import zipfile
+
+#Server endpoint
+from flask import Flask, render_template, Response, request, jsonify, flash, redirect, url_for
  
 from collections import defaultdict
 from io import StringIO
 from matplotlib import pyplot as plt
 from PIL import Image
 
-from vidgear.gears import NetGear
-server = NetGear(receive_mode = True, request_timeout=50000)
-
-import cv2
-cap = cv2.VideoCapture(0)
- 
 sys.path.append("..")
 from object_detection.utils import ops as utils_ops
 
@@ -37,13 +34,13 @@ PATH_TO_LABELS = os.path.join('data', 'mscoco_label_map.pbtxt')
  
 NUM_CLASSES = 90
  
-opener = urllib.request.URLopener()
-opener.retrieve(DOWNLOAD_BASE + MODEL_FILE, MODEL_FILE)
-tar_file = tarfile.open(MODEL_FILE)
-for file in tar_file.getmembers():
-  file_name = os.path.basename(file.name)
-  if 'frozen_inference_graph.pb' in file_name:
-    tar_file.extract(file, os.getcwd())
+# opener = urllib.request.URLopener()
+# opener.retrieve(DOWNLOAD_BASE + MODEL_FILE, MODEL_FILE)
+# tar_file = tarfile.open(MODEL_FILE)
+# for file in tar_file.getmembers():
+#   file_name = os.path.basename(file.name)
+#   if 'frozen_inference_graph.pb' in file_name:
+#     tar_file.extract(file, os.getcwd())
  
 detection_graph = tf.Graph()
 with detection_graph.as_default():
@@ -63,9 +60,8 @@ def load_image_into_numpy_array(image):
       (im_height, im_width, 3)).astype(np.uint8)
 
 PATH_TO_TEST_IMAGES_DIR = 'test_images'
-TEST_IMAGE_PATHS = [ os.path.join(PATH_TO_TEST_IMAGES_DIR, 'image{}.jpg'.format(i)) for i in range(1, 2) ]
+TEST_IMAGE_PATHS = [ os.path.join(PATH_TO_TEST_IMAGES_DIR, 'image{}.jpg'.format(i)) for i in range(1, 4) ]
 
-print(TEST_IMAGE_PATHS)
 def run_inference_for_single_image(image, graph):
   with graph.as_default():
     with tf.Session() as sess:
@@ -114,8 +110,10 @@ def run_inference_for_single_image(image, graph):
           output_dict['detection_masks'] = output_dict['detection_masks'][0]
         return output_dict
 
-for image_path in TEST_IMAGE_PATHS:
-  image = Image.open(image_path)
+
+
+def startProcessing(file):
+  image = Image.open(file)
   # the array based representation of the image will be used later in order to prepare the
   # result image with boxes and labels on it.
   image_np = load_image_into_numpy_array(image)
@@ -134,13 +132,45 @@ for image_path in TEST_IMAGE_PATHS:
       use_normalized_coordinates=True,
       line_thickness=8)
  
-    
-  print(output_dict)
-  img = Image.fromarray(image_np, 'RGB')
-  img.save('test.png')
+  maxScore = np.argmax(output_dict['detection_scores'])
+  detectedClass = output_dict['detection_classes'][maxScore]
+  print(category_index[detectedClass]['name'])
+
+  return category_index[detectedClass]['name']
+  # img = Image.fromarray(image_np, 'RGB')
+  # img.save('test.png')
   # img.show()
   # plt.figure(figsize=(600,600))
   # plt.imshow(image_np)
+
+ALLOWED_EXTENSIONS = { 'png', 'jpg', 'jpeg'}
+
+app = Flask(__name__)
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/submit', methods=['POST'])
+def submit(): 
+  if request.method == 'POST':
+    if 'file' not in request.files:
+      flash('No file part')
+      return "No file submited"
+    file = request.files['file']
+    if file.filename == '':
+      flash('No selected file')
+      return "No file selected"
+    if file and allowed_file(file.filename):
+      result = startProcessing(file)
+      # filename = secure_filename(file.filename)
+      # file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+      return 'The model recognized ' + result
+  return "'"
+
+if __name__ == '__main__':
+    # defining server ip address and port
+    app.run(host='0.0.0.0',port='5000', debug=True)
 
 # with detection_graph.as_default():
 #   with tf.Session(graph=detection_graph) as sess:
