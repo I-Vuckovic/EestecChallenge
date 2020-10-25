@@ -64,8 +64,8 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
    // var pgsBar = findViewById<ProgressBar>(R.id.pBar)
 
     var dialog: ProgressDialog? = null
-    var serverURL: String = "http://89.39.144.160:5000/submit"
-    var serverUploadDirectoryPath: String = "http://89.39.144.160:5000/submit"
+    var serverURL: String = "http://denicdamjan.ddns.net:5000/submit"
+    var serverUploadDirectoryPath: String = "http://denicdamjan.ddns.net:5000/submit"
     val client = OkHttpClient.Builder().connectTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
         .writeTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
         .readTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
