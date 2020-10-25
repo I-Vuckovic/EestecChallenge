@@ -15,17 +15,17 @@ from PIL import Image
 from vidgear.gears import NetGear
 server = NetGear(receive_mode = True, request_timeout=50000)
 
- 
 import cv2
 cap = cv2.VideoCapture(0)
  
 sys.path.append("..")
- 
+from object_detection.utils import ops as utils_ops
+
 from utils import label_map_util
  
 from utils import visualization_utils as vis_util
  
-MODEL_NAME = 'ssd_mobilenet_v1_coco_2017_11_17'
+MODEL_NAME = 'mask_rcnn_inception_v2_coco_2018_01_28'
 MODEL_FILE = MODEL_NAME + '.tar.gz'
 DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
  
@@ -73,16 +73,15 @@ def run_inference_for_single_image(image, graph):
       ops = tf.get_default_graph().get_operations()
       all_tensor_names = {output.name for op in ops for output in op.outputs}
       tensor_dict = {}
-      
       for key in [
           'num_detections', 'detection_boxes', 'detection_scores',
           'detection_classes', 'detection_masks'
      ]:
         tensor_name = key + ':0'
+
         if tensor_name in all_tensor_names:
           tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(
             tensor_name)
-      print(tensor_dict)
       if 'detection_masks' in tensor_dict:
        
         # The following processing is only for single image
@@ -134,8 +133,14 @@ for image_path in TEST_IMAGE_PATHS:
       instance_masks=output_dict.get('detection_masks'),
       use_normalized_coordinates=True,
       line_thickness=8)
-plt.figure(figsize=IMAGE_SIZE)
-plt.imshow(image_np)
+ 
+    
+  print(output_dict)
+  img = Image.fromarray(image_np, 'RGB')
+  img.save('test.png')
+  # img.show()
+  # plt.figure(figsize=(600,600))
+  # plt.imshow(image_np)
 
 # with detection_graph.as_default():
 #   with tf.Session(graph=detection_graph) as sess:
