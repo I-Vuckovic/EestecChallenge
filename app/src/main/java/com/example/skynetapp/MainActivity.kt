@@ -1,46 +1,46 @@
 package com.example.skynetapp
 
-import android.speech.tts.TextToSpeech
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import java.util.*
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Bundle
-import android.util.Log
-import android.view.Menu
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.app.*
-import androidx.core.content.ContextCompat
-import kotlinx.android.synthetic.main.activity_main.*
-import java.util.concurrent.Executors
-import ai.fritz.core.Fritz
-import android.net.Uri
-import android.webkit.MimeTypeMap
-import androidx.camera.core.*
 //import com.example.skynetapp.api.APIInterface
 //import com.example.skynetapp.api.UploadRequestBody
 //import com.example.skynetapp.api.uploadResponse
 //import com.mvp.handyopinion.UploadUtility
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.internal.wait
 //import retrofit2.Call
 //import retrofit2.Call
 //import retrofit2.Callback
 //import retrofit2.Response
 //import retrofit2.Retrofit
 //import retrofit2.converter.gson.GsonConverterFactory
-import java.io.File
-import java.text.SimpleDateFormat
 //import retrofit2.Callback
 //import retrofit2.Response
-import android.app.Activity
+import ai.fritz.core.Fritz
+import android.Manifest
 import android.app.ProgressDialog
-import android.icu.util.TimeUnit
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Bundle
+import android.speech.tts.TextToSpeech
+import android.util.Log
+import android.view.Menu
+import android.webkit.MimeTypeMap
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import kotlinx.android.synthetic.main.activity_main.*
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.Executors
 
 
 // class MainActivity : AppCompatActivity() {
@@ -80,7 +80,8 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
             startCamera()
         } else {
             ActivityCompat.requestPermissions(
-                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
+            )
         }
 
         viewFinder.setOnClickListener { takePhoto() }
@@ -89,10 +90,10 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
 
         //TTS
         t1 = TextToSpeech(applicationContext, TextToSpeech.OnInitListener { status ->
-                    if (status != TextToSpeech.ERROR) {
-                        t1!!.language = Locale.UK
-                    }
-                })
+            if (status != TextToSpeech.ERROR) {
+                t1!!.language = Locale.UK
+            }
+        })
 
     }
 
@@ -124,9 +125,10 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture)
+                    this, cameraSelector, preview, imageCapture
+                )
 
-            } catch(exc: Exception) {
+            } catch (exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
             }
 
@@ -159,7 +161,8 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
     
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(
-            baseContext, it) == PackageManager.PERMISSION_GRANTED
+            baseContext, it
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun takePhoto() {
@@ -170,8 +173,10 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
         // Create time-stamped output file to hold the image
         val photoFile = File(
             outputDirectory,
-            SimpleDateFormat(FILENAME_FORMAT, Locale.US
-            ).format(System.currentTimeMillis()) + ".jpg")
+            SimpleDateFormat(
+                FILENAME_FORMAT, Locale.US
+            ).format(System.currentTimeMillis()) + ".jpg"
+        )
 
         // Create output options object which contains file + metadata
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
@@ -179,7 +184,9 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
         // Set up image capture listener, which is triggered after photo has
         // been taken
         imageCapture.takePicture(
-            outputOptions, ContextCompat.getMainExecutor(this), object : ImageCapture.OnImageSavedCallback {
+            outputOptions,
+            ContextCompat.getMainExecutor(this),
+            object : ImageCapture.OnImageSavedCallback {
                 override fun onError(exc: ImageCaptureException) {
                     Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
                 }
@@ -189,6 +196,7 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
                     val msg = "Photo capture succeeded: $savedUri"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
+
                     uploadFile(photoFile, photoFile.name)
                 }
             })
@@ -196,7 +204,7 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
         //readText("I can read")
     }
 
-    public fun readText(msg:String){
+    public fun readText(msg: String){
         //Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
         t1!!.speak(msg, TextToSpeech.QUEUE_FLUSH, null)
     }
@@ -210,14 +218,17 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
 
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String>, grantResults:
-        IntArray) {
+        IntArray
+    ) {
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
                 startCamera()
             } else {
-                Toast.makeText(this,
+                Toast.makeText(
+                    this,
                     "Permissions not granted by the user.",
-                    Toast.LENGTH_SHORT).show()
+                    Toast.LENGTH_SHORT
+                ).show()
                 finish()
             }
         }
@@ -302,6 +313,7 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
 
     fun uploadFile(sourceFile: File, uploadedFileName: String? = null) {
         Thread {
+
             val mimeType = getMimeType(sourceFile);
             if (mimeType == null) {
                 Log.e("file error", "Not able to get mime type")
@@ -311,17 +323,21 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
             try {
                 val requestBody: RequestBody =
                     MultipartBody.Builder().setType(MultipartBody.FORM)
-                        .addFormDataPart("file", fileName,sourceFile.asRequestBody(mimeType.toMediaTypeOrNull()))
+                        .addFormDataPart(
+                            "file",
+                            fileName,
+                            sourceFile.asRequestBody(mimeType.toMediaTypeOrNull())
+                        )
                         .build()
 
                 val request: Request = Request.Builder().url(serverURL).post(requestBody).build()
 
                 val response: Response = client.newCall(request).execute()
 
-                response.body?.string()?.let { readText(it+". Press anywhere to recognize another object") }
+                response.body?.string()?.let { readText(it + ". Press anywhere to recognize another object") }
 
                 if (response.isSuccessful) {
-                    Log.d("File upload","success, path: $serverUploadDirectoryPath$fileName")
+                    Log.d("File upload", "success, path: $serverUploadDirectoryPath$fileName")
                     //readText("Press anywhere to recognize an object")
                 } else {
                     Log.e("File upload", "failed")
