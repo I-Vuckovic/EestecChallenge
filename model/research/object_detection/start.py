@@ -32,7 +32,7 @@ PATH_TO_CKPT = MODEL_NAME + '/frozen_inference_graph.pb'
 # List of the strings that is used to add correct label for each box.
 PATH_TO_LABELS = os.path.join('data', 'mscoco_label_map.pbtxt')
  
-NUM_CLASSES = 90
+NUM_CLASSES = 150
  
 # opener = urllib.request.URLopener()
 # opener.retrieve(DOWNLOAD_BASE + MODEL_FILE, MODEL_FILE)
@@ -110,13 +110,15 @@ def run_inference_for_single_image(image, graph):
           output_dict['detection_masks'] = output_dict['detection_masks'][0]
         return output_dict
 
-
+size = 256, 256
 
 def startProcessing(file):
   image = Image.open(file)
+  rotated = image.rotate(270, expand=True)
+  resized = rotated.resize(size)
   # the array based representation of the image will be used later in order to prepare the
   # result image with boxes and labels on it.
-  image_np = load_image_into_numpy_array(image)
+  image_np = load_image_into_numpy_array(resized)
   # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
   image_np_expanded = np.expand_dims(image_np, axis=0)
   # Actual detection.
@@ -135,10 +137,10 @@ def startProcessing(file):
   maxScore = np.argmax(output_dict['detection_scores'])
   detectedClass = output_dict['detection_classes'][maxScore]
   print(category_index[detectedClass]['name'])
-
+  img = Image.fromarray(image_np, 'RGB')
+  img.save('test.png')
   return category_index[detectedClass]['name']
-  # img = Image.fromarray(image_np, 'RGB')
-  # img.save('test.png')
+
   # img.show()
   # plt.figure(figsize=(600,600))
   # plt.imshow(image_np)
@@ -155,11 +157,14 @@ def allowed_file(filename):
 def submit(): 
   if request.method == 'POST':
     if 'file' not in request.files:
-      flash('No file part')
+      #flash('No file part')
+      print("No file submited")
       return "No file submited"
     file = request.files['file']
     if file.filename == '':
-      flash('No selected file')
+      #flash('No selected file')
+      print("No file selected")
+
       return "No file selected"
     if file and allowed_file(file.filename):
       result = startProcessing(file)
