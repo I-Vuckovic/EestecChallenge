@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
-        camera_capture_button.setOnClickListener { takePhoto() }
+        viewFinder.setOnClickListener { takePhoto() }
 
         outputDirectory = getOutputDirectory()
 
