@@ -1,17 +1,5 @@
 package com.example.skynetapp
 
-//import com.example.skynetapp.api.APIInterface
-//import com.example.skynetapp.api.UploadRequestBody
-//import com.example.skynetapp.api.uploadResponse
-//import com.mvp.handyopinion.UploadUtility
-//import retrofit2.Call
-//import retrofit2.Call
-//import retrofit2.Callback
-//import retrofit2.Response
-//import retrofit2.Retrofit
-//import retrofit2.converter.gson.GsonConverterFactory
-//import retrofit2.Callback
-//import retrofit2.Response
 import ai.fritz.core.Fritz
 import android.Manifest
 import android.annotation.SuppressLint
@@ -22,9 +10,10 @@ import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.Menu
+import android.view.View
 import android.webkit.MimeTypeMap
-import android.widget.Button
-import android.widget.EditText
+import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
@@ -34,6 +23,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -42,26 +32,11 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Executors
-import android.icu.util.TimeUnit
-import android.view.View
-import android.widget.*
-import com.bumptech.glide.Glide
-
-// class MainActivity : AppCompatActivity() {
-    
-
-//     override fun onCreate(savedInstanceState: Bundle?) {
-//         super.onCreate(savedInstanceState)
-
-//         ed1 = findViewById<View>(R.id.editText) as EditText
-//         b1 = findViewById<View>(R.id.button) as Button
 
 
 @SuppressLint("WrongViewCast")
-class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
+class MainActivity : AppCompatActivity() {
     var t1: TextToSpeech? = null
-   // setContentView(R.id)
-   // var pgsBar = findViewById<ProgressBar>(R.id.pBar)
 
     var dialog: ProgressDialog? = null
     var serverURL: String = "http://denicdamjan.ddns.net:5000/submit"
@@ -79,7 +54,6 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         var pgsBar = findViewById<View>(R.id.pBar) as? ProgressBar
-        //pgsBar!!.onVisibilityAggregated(true)
 
         showGif()
 
@@ -105,11 +79,6 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
         })
 
     }
-
-//    override fun onStart() {
-//        super.onStart()
-//        readText("Press anywhere to recognize an object")
-//    }
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
@@ -145,13 +114,6 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
 
         imageCapture = ImageCapture.Builder()
             .build()
-//        ==============================================================================================CLIENT PREDICTOR CODE===================================
-//        val imageAnalyzer = ImageAnalysis.Builder()
-//            .build()
-//            .also {
-//                it.setAnalyzer(cameraExecutor, ImageProcessor ())
-//            }
-//        ==============================================================================================CLIENT PREDICTOR CODE===================================
     }
 
     override fun onPause() {
@@ -210,17 +172,16 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
                     uploadFile(photoFile, photoFile.name)
                 }
             })
-
-        //readText("I can read")
     }
 
     fun showGif() {
         val imageView: ImageView = findViewById(R.id.imageView)
-        Glide.with(this).load("https://media4.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif").into(imageView)
+        Glide.with(this).load("https://media4.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif").into(
+            imageView
+        )
     }
 
-    public fun readText(msg:String){
-        //Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+    public fun readText(msg: String){
         t1!!.speak(msg, TextToSpeech.QUEUE_FLUSH, null)
     }
 
@@ -248,74 +209,11 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
             }
         }
     }
-//    private fun uploadImage(file: File) {
-//        val body = UploadRequestBody(file, "image", this)
-//        APIInterface().uploadImage(
-//            MultipartBody.Part.createFormData(
-//                "image",
-//                file.name,
-//                body
-//            )
-//        ).enqueue(object : Callback<uploadResponse> {
-//            override fun onFailure(call: Call<uploadResponse>, t: Throwable) {
-//            }
-//            override fun onResponse(
-//                call: Call<uploadResponse>,
-//                response: Response<uploadResponse>
-//            ) {
-//                response.body()?.let {
-//                    Log.i("RISPONSE", it.toString())
-//                }
-//            }
-//        })
-//
-//    }
 
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
     }
-
-//        ==============================================================================================CLIENT PREDICTOR CODE===================================
-//    inner class ImageProcessor : ImageAnalysis.Analyzer {
-//        var predictor: FritzVisionLabelPredictor? = null
-//        val TAG = javaClass.simpleName
-//
-//        @SuppressLint("UnsafeExperimentalUsageError")
-//        override fun analyze(image: ImageProxy) {
-//
-//            //Handle all the ML logic here
-//            val mediaImage = image.image
-//
-//            val imageRotation = ImageRotation.getFromValue(image.imageInfo.rotationDegrees)
-//
-//            val visionImage = FritzVisionImage.fromMediaImage(mediaImage, imageRotation)
-//
-//            val managedModel = ImageLabelManagedModelFast()
-//
-//            FritzVision.ImageLabeling.loadPredictor(
-//                managedModel,
-//                object : PredictorStatusListener<FritzVisionLabelPredictor> {
-//                    override fun onPredictorReady(p0: FritzVisionLabelPredictor?) {
-//                        Log.d(TAG, "Image Labeling predictor is ready")
-//                        predictor = p0
-//                    }
-//                })
-//
-//            val labelResult = predictor?.predict(visionImage)
-//
-//                labelResult?.resultString?.let {
-//                    val sname = it.split(":")
-//                    Log.e(TAG, it)
-//                    Log.e(TAG, sname[0])
-//                    println(sname[0])
-//                    tv_name.text = sname[0]
-//                } ?: kotlin.run {
-//                    tv_name.visibility = TextView.INVISIBLE
-//                }
-//        }
-//    }
-//        ==============================================================================================CLIENT PREDICTOR CODE===================================
 
     companion object {
         private const val TAG = "CameraXBasic"
@@ -323,8 +221,6 @@ class MainActivity : AppCompatActivity()/*, UploadRequestBody.UploadCallback*/ {
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
-
-
 
     fun uploadFile(sourceFile: File, uploadedFileName: String? = null) {
         Thread {
